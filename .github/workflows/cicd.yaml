@@ -1,4 +1,5 @@
-name: Build and push docker image.
+#yaml file for GitHub Actions to build and push a Docker image to Azure Container Registry (ACR) when code is pushed to the main branch.
+name: Build and push docker image
 
 on:
   push:
@@ -7,36 +8,27 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
 
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-# Login to ECR
-#=============
-    - name: Login to ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-
-    - name: Docker build 
+    - name: Login to ACR
       run: |
-        echo "${{ vars.APPLICATION_PROPERTIES }}" > application.properties
-        # ls -la 
-        # cat application.properties
-        docker build -t netflix_backend:latest .
+        echo ${{ secrets.ACR_PASSWORD }} | docker login netflixbackendwithdocker.azurecr.io \
+        -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-    - name: Docker push
+    - name: Build Docker image
       run: |
-        docker tag netflix_backend:latest 486753526260.dkr.ecr.eu-north-1.amazonaws.com/netflix_backend:latest
-        docker push 486753526260.dkr.ecr.eu-north-1.amazonaws.com/netflix_backend:latest
+        docker build -t netflixbackend .
 
+    - name: Tag image
+      run: |
+        docker tag netflixbackend netflixbackendwithdocker.azurecr.io/netflixbackend:latest
+
+    - name: Push image
+      run: |
+        docker push netflixbackendwithdocker.azurecr.io/netflixbackend:latest
+
+docker tag netflixbackendwithdocker ${{ secrets.AZURE_REGISTRY }}/netflixbackendwithdocker:${{ github.run_number }}
+docker push ${{ secrets.AZURE_REGISTRY }}/netflixbackendwithdocker:${{ github.run_number }}
