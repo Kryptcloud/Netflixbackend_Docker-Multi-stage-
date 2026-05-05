@@ -1,4 +1,4 @@
-#yaml file for GitHub Actions to build and push a Docker image to Azure Container Registry (ACR) when code is pushed to the main branch.
+# yaml file for GitHub Actions to build and push a Docker image to Azure Container Registry (ACR)
 name: Build and push docker image
 
 on:
@@ -25,10 +25,9 @@ jobs:
     - name: Tag image
       run: |
         docker tag netflixbackend netflixbackendwithdocker.azurecr.io/netflixbackend:latest
+        docker tag netflixbackend netflixbackendwithdocker.azurecr.io/netflixbackend:${{ github.run_number }}
 
     - name: Push image
       run: |
         docker push netflixbackendwithdocker.azurecr.io/netflixbackend:latest
-
-docker tag netflixbackend netflixbackendwithdocker.azurecr.io/netflixbackend:${{ github.run_number }}
-docker push netflixbackendwithdocker.azurecr.io/netflixbackend:${{ github.run_number }}
+        docker push netflixbackendwithdocker.azurecr.io/netflixbackend:${{ github.run_number }}
